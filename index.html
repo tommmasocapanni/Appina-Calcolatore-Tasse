@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcolatore Fiscale — Dependance Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400&display=swap');
+
+  :root {
+    --bg: #111;
+    --border: #222;
+    --border-hover: #333;
+    --text: #e6e6e6;
+    --sub: #888;
+    --dim: #444;
+    --accent: #ff6a35;
+    --accent-bg: rgba(255,106,53,0.07);
+    --accent-border: rgba(255,106,53,0.18);
+    --danger: #e05555;
+    --danger-bg: rgba(224,85,85,0.07);
+    --danger-border: rgba(224,85,85,0.18);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fafaf8;
+      --border: #e8e8e4;
+      --border-hover: #d8d8d4;
+      --text: #111;
+      --sub: #888;
+      --dim: #ccc;
+      --accent: #d44f18;
+      --accent-bg: rgba(212,79,24,0.06);
+      --accent-border: rgba(212,79,24,0.15);
+      --danger: #c0392b;
+      --danger-bg: rgba(192,57,43,0.06);
+      --danger-border: rgba(192,57,43,0.15);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 4rem 1.5rem 8rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .wrap { width: 100%; max-width: 440px; }
+
+  /* HEADER */
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1rem;
+    font-weight: 300;
+    color: var(--text);
+    margin-bottom: 0.65rem;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    border-radius: 100px;
+    padding: 0.2rem 0.65rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .pill-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* FIELD */
+  .field { margin-bottom: 2.75rem; }
+
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+
+  .amount-row:focus-within { border-color: var(--accent); }
+
+  .euro {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1;
+  }
+
+  input[type="number"] {
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 2.4rem;
+    font-weight: 300;
+    color: var(--text);
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { display: none; }
+  input::placeholder { color: var(--dim); }
+
+  /* TOGGLE PILLS */
+  .toggle-group {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .tog {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.07em;
+    padding: 0.38rem 0.9rem;
+    background: none;
+    border: none;
+    color: var(--sub);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .tog + .tog { border-left: 1px solid var(--border); }
+
+  .tog.on {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  /* DIVIDER */
+  .sep {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2.5rem 0;
+  }
+
+  /* ROWS */
+  .cap {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 1rem;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .row:last-child { border-bottom: none; }
+
+  .row-left { color: var(--sub); font-size: 0.82rem; }
+
+  .row-left span {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    margin-top: 0.2rem;
+  }
+
+  .row-right {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .row-right.minus { color: var(--danger); }
+
+  /* SUMMARY BOXES */
+  .box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.1rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+  }
+
+  .box-label { font-size: 0.8rem; font-weight: 300; color: var(--text); }
+
+  .box-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.35rem;
+    font-weight: 300;
+  }
+
+  .box.accantonare {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+  }
+  .box.accantonare .box-val { color: var(--danger); }
+
+  .box.netto {
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+  }
+  .box.netto .box-val { color: var(--accent); }
+
+  /* SPLIT */
+  .split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+
+  .split-card {
+    padding: 0.85rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .split-card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sub);
+    margin-bottom: 0.45rem;
+  }
+
+  .split-card-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: var(--text);
+  }
+
+  .split-card.me {
+    background: var(--accent-bg);
+    border-color: var(--accent-border);
+  }
+  .split-card.me .split-card-val { color: var(--accent); }
+
+  /* SLIDER */
+  .slider-wrap { padding: 0.25rem 0 0.5rem; }
+
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.65rem;
+  }
+
+  .slider-top .field-label { margin: 0; }
+
+  .slider-readout {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+    display: block;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+  }
+
+  .slider-ends {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.4rem;
+  }
+
+  .slider-end {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    padding: 2.5rem 0;
+  }
+
+  /* NOTE */
+  .note {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.7rem;
+    color: var(--sub);
+    line-height: 1.7;
+  }
+  .note strong { font-weight: 400; color: var(--text); }
+
+  /* hidden */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Dependance Studio · 04803060401</div>
+  <h1>Calcolatore Fiscale</h1>
+  <div class="pill"><span class="pill-dot"></span>Forfettario · 5% · ATECO 741209</div>
+
+  <!-- IMPORTO -->
+  <div class="field">
+    <label class="field-label" for="importo">Importo fattura</label>
+    <div class="amount-row">
+      <span class="euro">€</span>
+      <input type="number" id="importo" placeholder="0" min="0" oninput="render()">
+    </div>
+  </div>
+
+  <!-- IVA -->
+  <div class="field">
+    <span class="field-label">L'importo include IVA?</span>
+    <div class="toggle-group">
+      <button class="tog on" id="t-noiva" onclick="setIva(false)">No, già netto</button>
+      <button class="tog" id="t-siiva" onclick="setIva(true)">Sì, 22% inclusa</button>
+    </div>
+  </div>
+
+  <!-- COLLAB -->
+  <div class="field">
+    <span class="field-label">Progetto con collaboratrice?</span>
+    <div class="toggle-group">
+      <button class="tog on" id="t-solo" onclick="setCollab(false)">Solo io</button>
+      <button class="tog" id="t-split" onclick="setCollab(true)">Dividiamo</button>
+    </div>
+  </div>
+
+  <!-- SLIDER COLLAB -->
+  <div class="field hidden" id="slider-section">
+    <div class="slider-wrap">
+      <div class="slider-top">
+        <span class="field-label">Quota collaboratrice</span>
+        <span class="slider-readout" id="slider-label">50%</span>
+      </div>
+      <input type="range" id="slider" min="5" max="95" value="50" step="5" oninput="onSlider()">
+      <div class="slider-ends">
+        <span class="slider-end">← Tu</span>
+        <span class="slider-end">Collaboratrice →</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sep">
+
+  <!-- RISULTATI -->
+  <div id="results"><div class="empty">inserisci un importo ↑</div></div>
+
+  <p class="note">
+    <strong>Coeff. redditività 78%</strong> (ATECO 741209) ·
+    <strong>INPS Gestione Separata 26.07%</strong> sull'imponibile ·
+    <strong>Imposta sostitutiva 5%</strong> sul netto INPS · IVA non dovuta dai forfettari.<br><br>
+    Stima indicativa — verifica sempre con il tuo commercialista.
+  </p>
+
+</div>
+<script>
+  let iva = false;
+  let collab = false;
+  let collabQt = 50;
+
+  function setIva(v) {
+    iva = v;
+    document.getElementById('t-noiva').classList.toggle('on', !v);
+    document.getElementById('t-siiva').classList.toggle('on', v);
+    render();
+  }
+
+  function setCollab(v) {
+    collab = v;
+    document.getElementById('t-solo').classList.toggle('on', !v);
+    document.getElementById('t-split').classList.toggle('on', v);
+    document.getElementById('slider-section').classList.toggle('hidden', !v);
+    render();
+  }
+
+  function onSlider() {
+    collabQt = +document.getElementById('slider').value;
+    document.getElementById('slider-label').textContent = collabQt + '%';
+    render();
+  }
+
+  const f = n => '€\u202f' + n.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const p = (n, tot) => ((n / tot) * 100).toFixed(1) + '%';
+
+  function render() {
+    const raw = parseFloat(document.getElementById('importo').value) || 0;
+    const el = document.getElementById('results');
+
+    if (!raw) {
+      el.innerHTML = '<div class="empty">inserisci un importo ↑</div>';
+      return;
+    }
+
+    const base = iva ? raw / 1.22 : raw;
+    const ivaQ = iva ? raw - base : 0;
+    const imponibile = base * 0.78;
+    const inps = imponibile * 0.2607;
+    const tassa = imponibile * 0.05;
+
+    // Logica divisione:
+    // - La tassa sostitutiva è solo tua → si sottrae prima della divisione
+    // - L'INPS è solo tuo → si sottrae DOPO la divisione, dalla tua quota
+    // - Lei riceve la sua % del (base - tassa), pulita
+    const nettoPreInps = base - tassa;
+    const leiQt = collab ? (collabQt / 100) * nettoPreInps : 0;
+    const tuoLordo = collab ? (1 - collabQt / 100) * nettoPreInps : nettoPreInps;
+    const tuoNetto = tuoLordo - inps;
+    const nettoTotale = base - tassa - inps; // il tuo netto finale (solo-mode)
+
+    const soloSection = !collab ? `
+      <div class="box netto">
+        <span class="box-label">Il tuo netto</span>
+        <span class="box-val">${f(nettoTotale)}</span>
+      </div>` : '';
+
+    const splitSection = collab ? `
+      <hr class="sep">
+      <div class="split-grid">
+        <div class="split-card">
+          <div class="split-card-label">Collaboratrice · ${collabQt}%</div>
+          <div class="split-card-val">${f(leiQt)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--dim);margin-top:0.35rem;">netto da tasse</div>
+        </div>
+        <div class="split-card me">
+          <div class="split-card-label">Tu · ${100 - collabQt}%</div>
+          <div class="split-card-val">${f(tuoNetto)}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--accent);opacity:0.7;margin-top:0.35rem;">netto da tasse + INPS</div>
+        </div>
+      </div>` : '';
+
+    el.innerHTML = `
+      <div class="box accantonare">
+        <span class="box-label">Accantonare</span>
+        <span class="box-val">${f(inps + tassa)}</span>
+      </div>
+
+      <div class="row" style="padding-top:0.8rem;">
+        <div class="row-left">Tasse (5%)<span>imposta sostitutiva</span></div>
+        <div class="row-right minus">${f(tassa)}</div>
+      </div>
+      <div class="row">
+        <div class="row-left">Contributi INPS<span>previdenza, solo tuoi</span></div>
+        <div class="row-right minus">${f(inps)}</div>
+      </div>
+
+      <hr class="sep">
+
+      ${soloSection}
+      ${splitSection}
+    `;
+  }
+</script>
+</body>
+</html>
